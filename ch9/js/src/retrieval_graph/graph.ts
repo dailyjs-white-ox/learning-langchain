@@ -46,9 +46,29 @@ async function checkQueryType(
     query: state.query,
   });
 
+
+  // 대안적 방법: JSON 모드 사용
   const response = await model
-    .withStructuredOutput(schema)
-    .invoke(formattedPrompt.toString());
+    .withStructuredOutput({
+      name: "query_routing",
+      description: "Determine if query needs retrieval or can be answered directly",
+      schema: {
+        type: "object",
+        properties: {
+          route: {
+            type: "string",
+            enum: ["retrieve", "direct"],
+            description: "Whether to retrieve documents or answer directly"
+          },
+          directAnswer: {
+            type: "string",
+            description: "Direct answer if route is 'direct'"
+          }
+        },
+        required: ["route"]
+      }
+    })
+    .invoke(formattedPrompt);
 
   const route = response.route;
 
